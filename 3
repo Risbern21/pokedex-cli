@@ -127,6 +127,7 @@ func commandMapBack(config *config) error {
 
 	val, ok := config.c.Get(*prev)
 	if ok {
+		fmt.Println("readig from cache")
 		if err := json.Unmarshal(val, &response); err != nil {
 			return err
 		}
@@ -215,10 +216,11 @@ func commandExplore(config *config) error {
 	location := &locationDetails{}
 	endpoint := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%s/", *config.locationName)
 
-	fmt.Println(config.blue.Sprint("Exploring ", *config.locationName, "..."))
+	fmt.Println("Exploring ", *config.locationName)
 
 	l, ok := config.c.Get(endpoint)
 	if ok {
+		fmt.Println("from cache")
 		if err := json.Unmarshal(l, location); err != nil {
 			return err
 		}
@@ -530,7 +532,7 @@ type pokemonDetails struct {
 }
 
 func commandCatch(config *config) error {
-	fmt.Print(config.blue.Sprintf("Throwing a Pokeball at %s...\n", *config.pokemonName))
+	fmt.Printf("Throwing a Pokeball at %s...\n", *config.pokemonName)
 
 	endpoint := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", *config.pokemonName)
 	pokemon := &pokemonDetails{}
@@ -560,10 +562,10 @@ func commandCatch(config *config) error {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	chance := math.Mod(float64(pokemon.BaseExperience), float64(r.Float32()))
 	if chance > 0.5 {
-		fmt.Print(config.green.Sprintf("%s was caught!\n", pokemon.Name))
+		fmt.Printf("%s was caught!\n", pokemon.Name)
 		config.pokeballs[pokemon.Name] = *pokemon
 	} else {
-		fmt.Print(config.red.Sprintf("%s escaped!\n", pokemon.Name))
+		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}
 
 	return nil
@@ -592,11 +594,7 @@ func commandInspect(config *config) error {
 }
 
 func commandPokedex(config *config) error {
-	if len(config.pokeballs) == 0 {
-		return fmt.Errorf("you have'nt caught any pokemon yet")
-	}
-
-	fmt.Println(config.blue.Sprint("Your pokedex:"))
+	fmt.Println("Your pokedex:")
 	for name := range config.pokeballs {
 		fmt.Printf("\t- %s\n", name)
 	}
@@ -605,9 +603,9 @@ func commandPokedex(config *config) error {
 }
 
 func commandHelp(config *config) error {
-	fmt.Print(config.blue.Sprint("Welcome to the Pokedex!\nUsage:\n\n"))
+	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, command := range commands {
-		fmt.Print(config.green.Sprintf("%s:\t%s\n", command.name, command.description))
+		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil
 }
@@ -634,7 +632,7 @@ func commandClear(config *config) error {
 }
 
 func commandExit(config *config) error {
-	fmt.Print(config.blue.Sprint("Closing the Pokedex... Goodbye!"))
+	fmt.Print("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
@@ -652,31 +650,35 @@ func main() {
 
 		if command, ok := commands[cleanedText[0]]; ok {
 			switch command.name {
-			case "map", "mapb", "pokedex", "cc", "help", "clear", "exit":
+			case "map", "mapb", "pokedex", "cc":
 				if err := command.callback(config); err != nil {
-					fmt.Println(config.red.Sprint(err))
+					fmt.Println(err)
 				}
 			case "explore":
 				if len(cleanedText) == 2 {
 					config.locationName = &cleanedText[1]
 					if err := command.callback(config); err != nil {
-						fmt.Println(config.red.Sprint(err))
+						fmt.Println(err)
 					}
 				} else {
-					fmt.Println(config.red.Sprint("Expected a area name,found none"))
+					fmt.Println("Expected a area name,found none")
 				}
 			case "catch", "inspect":
 				if len(cleanedText) == 2 {
 					config.pokemonName = &cleanedText[1]
 					if err := command.callback(config); err != nil {
-						fmt.Println(config.red.Sprint(err))
+						fmt.Println(err)
 					}
 				} else {
-					fmt.Println(config.red.Sprint("Expected a pokemon name,found none"))
+					fmt.Println("Expected a pokemon name,found none")
+				}
+			case "help", "clear", "exit":
+				if err := command.callback(nil); err != nil {
+					fmt.Println(err)
 				}
 			}
 		} else {
-			fmt.Print(config.red.Sprint("Unknown command\n"))
+			fmt.Print("Unknown command\n")
 		}
 		fmt.Print(config.red.Sprint("Pokedex > "))
 	}
