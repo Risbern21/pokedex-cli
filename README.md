@@ -11,7 +11,7 @@
 - **View caught list** — show your current Pokédex
 - **Help & exit** commands for smoother CLI use
 
-*(Work in progress — more features planned!)* :contentReference[oaicite:2]{index=2}
+*(Work in progress — more features planned!)*
 
 ---
 
